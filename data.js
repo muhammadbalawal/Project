@@ -149,7 +149,7 @@ const DATA = {
     },
     {
       title: "Break Mates",
-      href: "https://magicui.design",
+      href: "https://apps.apple.com/ca/app/break-mates/id6751444568",
       dates: "June 2023 - Present",
       active: true,
       description:
@@ -169,23 +169,6 @@ const DATA = {
         },
       ],
       image: "/breakmatesapp.png",
-      video: "",
-    },
-    {
-      title: "Gurobu",
-      href: "https://magicui.design",
-      dates: "April 2021 - May 2021",
-      active: true,
-      description:
-        "Gurobu is a communication glove that translates sign language into text, helping bridge the gap between ASL users and non-signers.",
-      technologies: ["Arduino", "Flex Sensors", "Motion Sensors"],
-      links: [
-        {
-          type: "youtube",
-          href: "https://www.youtube.com/watch?v=l4LKDM_NZd4",
-        },
-      ],
-      image: "/gurobo.gif",
       video: "",
     },
   ],
