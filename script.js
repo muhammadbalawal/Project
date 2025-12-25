@@ -1,4 +1,3 @@
-// Populate the page with data from data.js
 document.addEventListener("DOMContentLoaded", () => {
   populateHero();
   populateSkills();
@@ -8,6 +7,16 @@ document.addEventListener("DOMContentLoaded", () => {
   populateHackathons();
   populateContact();
   initNavbar();
+  initSmoothCursor();
+  initScrollProgress();
+  initAOS();
+  initGSAPAnimations();
+  setTimeout(() => {
+    initParticles();
+  }, 100);
+  initTiltEffects();
+  initTypedAnimation();
+  initMagneticButtons();
 });
 
 function populateHero() {
@@ -16,7 +25,6 @@ function populateHero() {
   document.getElementById("description").textContent = DATA.description;
   document.getElementById("summary").textContent = DATA.summary;
 
-  // Social links
   const socialLinksContainer = document.getElementById("social-links");
   const socials = [
     { url: DATA.contact.social.GitHub.url, icon: "github" },
@@ -49,9 +57,12 @@ function populateSkills() {
 
 function populateWork() {
   const workTimeline = document.getElementById("work-timeline");
-  DATA.work.forEach((job) => {
+  DATA.work.forEach((job, index) => {
     const item = document.createElement("div");
     item.className = "timeline-item";
+    item.setAttribute("data-aos", "fade-right");
+    item.setAttribute("data-aos-delay", index * 150);
+    item.setAttribute("data-aos-duration", "800");
     item.innerHTML = `
             <div class="timeline-header">
                 <div class="timeline-title">
@@ -77,9 +88,12 @@ function populateWork() {
 
 function populateEducation() {
   const educationTimeline = document.getElementById("education-timeline");
-  DATA.education.forEach((edu) => {
+  DATA.education.forEach((edu, index) => {
     const item = document.createElement("div");
     item.className = "timeline-item";
+    item.setAttribute("data-aos", "fade-right");
+    item.setAttribute("data-aos-delay", index * 150);
+    item.setAttribute("data-aos-duration", "800");
     item.innerHTML = `
             <div class="timeline-header">
                 <div class="timeline-title">
@@ -100,17 +114,29 @@ function populateEducation() {
 
 function populateProjects() {
   const projectsGrid = document.getElementById("projects-grid");
-  DATA.projects.forEach((project) => {
+  DATA.projects.forEach((project, index) => {
     const card = document.createElement("div");
     card.className = "project-card";
-    card.innerHTML = `
+    card.setAttribute("data-aos", "zoom-in");
+    card.setAttribute("data-aos-delay", index * 200);
+    card.setAttribute("data-aos-duration", "800");
+      const githubLink = project.githubUrl 
+        ? `<a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer" class="github-button">
+            ${getIconSVG("github")}
+            <span>View on GitHub</span>
+          </a>`
+        : '';
+      
+      const externalLink = project.href && project.href !== project.githubUrl
+        ? `<a href="${project.href}" target="_blank" rel="noopener noreferrer" class="project-link" title="View Project">
+            ${getIconSVG("external-link")}
+          </a>`
+        : '';
+      
+      card.innerHTML = `
             <div class="project-header">
                 <h3>${project.title}</h3>
-                <a href="${
-                  project.href
-                }" target="_blank" rel="noopener noreferrer" class="project-link">
-                    ${getIconSVG("external-link")}
-                </a>
+                ${externalLink ? `<div style="display: flex; gap: 0.5rem;">${externalLink}</div>` : ''}
             </div>
             <p class="project-date">${project.dates}</p>
             <p class="project-description">${project.description}</p>
@@ -119,6 +145,7 @@ function populateProjects() {
                   .map((tech) => `<span class="tech-tag">${tech}</span>`)
                   .join("")}
             </div>
+            ${githubLink}
         `;
     projectsGrid.appendChild(card);
   });
@@ -126,9 +153,12 @@ function populateProjects() {
 
 function populateHackathons() {
   const hackathonsList = document.getElementById("hackathons-list");
-  DATA.hackathons.forEach((hackathon) => {
+  DATA.hackathons.forEach((hackathon, index) => {
     const card = document.createElement("div");
     card.className = "hackathon-card";
+    card.setAttribute("data-aos", "fade-left");
+    card.setAttribute("data-aos-delay", index * 100);
+    card.setAttribute("data-aos-duration", "700");
     card.innerHTML = `
             <div class="hackathon-header">
                 <div class="hackathon-title">
@@ -165,12 +195,420 @@ function populateContact() {
 
 function initNavbar() {
   const navbar = document.getElementById("navbar");
+  const mobileMenuToggle = document.querySelector(".mobile-menu-toggle");
+  const navLinks = document.querySelector(".nav-links");
+  let lastScroll = 0;
+  
   window.addEventListener("scroll", () => {
-    if (window.scrollY > 50) {
+    const currentScroll = window.scrollY;
+    
+    if (currentScroll > 50) {
       navbar.classList.add("scrolled");
     } else {
       navbar.classList.remove("scrolled");
     }
+    
+    lastScroll = currentScroll;
+  });
+
+  if (mobileMenuToggle && navLinks) {
+    mobileMenuToggle.addEventListener("click", () => {
+      mobileMenuToggle.classList.toggle("active");
+      navLinks.classList.toggle("active");
+      document.body.style.overflow = navLinks.classList.contains("active") ? "hidden" : "";
+    });
+
+    navLinks.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        mobileMenuToggle.classList.remove("active");
+        navLinks.classList.remove("active");
+        document.body.style.overflow = "";
+      });
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!navLinks.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+        mobileMenuToggle.classList.remove("active");
+        navLinks.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+    });
+  }
+}
+
+function initSmoothCursor() {
+  const cursor = document.querySelector(".cursor");
+  const cursorFollower = document.querySelector(".cursor-follower");
+  let mouseX = 0;
+  let mouseY = 0;
+  let followerX = 0;
+  let followerY = 0;
+
+  document.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    
+    cursor.style.left = mouseX + "px";
+    cursor.style.top = mouseY + "px";
+  });
+
+  function animateFollower() {
+    followerX += (mouseX - followerX) * 0.1;
+    followerY += (mouseY - followerY) * 0.1;
+    
+    cursorFollower.style.left = followerX + "px";
+    cursorFollower.style.top = followerY + "px";
+    
+    requestAnimationFrame(animateFollower);
+  }
+  animateFollower();
+
+  const hoverElements = document.querySelectorAll("a, button, .project-card, .hackathon-card, .skill-tag, .btn-primary");
+  hoverElements.forEach((el) => {
+    el.addEventListener("mouseenter", () => {
+      cursor.classList.add("cursor-hover");
+      cursorFollower.classList.add("cursor-follower-hover");
+    });
+    el.addEventListener("mouseleave", () => {
+      cursor.classList.remove("cursor-hover");
+      cursorFollower.classList.remove("cursor-follower-hover");
+    });
+  });
+}
+
+function initAOS() {
+  if (typeof AOS !== "undefined") {
+    AOS.init({
+      duration: 600,
+      easing: "ease-out-cubic",
+      once: true,
+      offset: 250,
+      delay: 0,
+      disable: "mobile",
+      startEvent: "DOMContentLoaded",
+      initClassName: false,
+      animatedClassName: "aos-animate",
+      useClassNames: false,
+      disableMutationObserver: false,
+      debounceDelay: 10,
+      throttleDelay: 50,
+    });
+    
+    setTimeout(() => {
+      AOS.refresh();
+    }, 100);
+    
+    setTimeout(() => {
+      document.querySelectorAll("[data-aos]").forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight + 250 && rect.bottom > -250;
+        if (isInViewport) {
+          el.classList.add("aos-animate");
+        }
+      });
+    }, 50);
+  }
+}
+
+function initGSAPAnimations() {
+  if (typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+
+    ScrollTrigger.refresh();
+
+    gsap.utils.toArray(".timeline-item").forEach((item, index) => {
+      const rect = item.getBoundingClientRect();
+      const isInViewport = rect.top < window.innerHeight + 200 && rect.bottom > -200;
+      
+      if (!isInViewport) {
+        gsap.set(item, { opacity: 0, x: -50 });
+      } else {
+        gsap.set(item, { opacity: 1, x: 0 });
+      }
+      
+      gsap.to(item, {
+        scrollTrigger: {
+          trigger: item,
+          start: "top 95%",
+          toggleActions: "play none none none",
+          once: true,
+        },
+        x: 0,
+        opacity: 1,
+        duration: 0.5,
+        delay: index * 0.05,
+        ease: "power2.out",
+        immediateRender: false,
+      });
+    });
+
+    gsap.utils.toArray(".project-card").forEach((card, index) => {
+      const rect = card.getBoundingClientRect();
+      const isInViewport = rect.top < window.innerHeight + 200 && rect.bottom > -200;
+      
+      if (!isInViewport) {
+        gsap.set(card, { opacity: 0, scale: 0.9, rotation: 2 });
+      } else {
+        gsap.set(card, { opacity: 1, scale: 1, rotation: 0 });
+      }
+      
+      gsap.to(card, {
+        scrollTrigger: {
+          trigger: card,
+          start: "top 95%",
+          toggleActions: "play none none none",
+          once: true,
+        },
+        scale: 1,
+        rotation: 0,
+        opacity: 1,
+        duration: 0.5,
+        delay: index * 0.08,
+        ease: "power2.out",
+        immediateRender: false,
+      });
+    });
+
+    gsap.utils.toArray(".hackathon-card").forEach((card, index) => {
+      const rect = card.getBoundingClientRect();
+      const isInViewport = rect.top < window.innerHeight + 200 && rect.bottom > -200;
+      
+      if (!isInViewport) {
+        gsap.set(card, { opacity: 0, x: 50 });
+      } else {
+        gsap.set(card, { opacity: 1, x: 0 });
+      }
+      
+      gsap.to(card, {
+        scrollTrigger: {
+          trigger: card,
+          start: "top 95%",
+          toggleActions: "play none none none",
+          once: true,
+        },
+        x: 0,
+        opacity: 1,
+        duration: 0.5,
+        delay: index * 0.05,
+        ease: "power2.out",
+        immediateRender: false,
+      });
+    });
+    
+    setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 500);
+
+    gsap.to("body", {
+      scrollTrigger: {
+        trigger: "body",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 0.5,
+      },
+    });
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute("href"));
+      if (target) {
+        const offsetTop = target.offsetTop - 80;
+        window.scrollTo({
+          top: offsetTop,
+          behavior: "smooth",
+        });
+      }
+    });
+  });
+}
+
+function initScrollProgress() {
+  const progressBar = document.querySelector(".scroll-progress");
+  if (progressBar) {
+    window.addEventListener("scroll", () => {
+      const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (window.scrollY / windowHeight) * 100;
+      progressBar.style.width = scrolled + "%";
+    });
+  }
+}
+
+function initParticles() {
+  if (typeof particlesJS !== "undefined") {
+    particlesJS("particles-js", {
+      particles: {
+        number: {
+          value: 120,
+          density: {
+            enable: true,
+            value_area: 600,
+          },
+        },
+        color: {
+          value: ["#3b82f6", "#2563eb", "#60a5fa", "#93c5fd"],
+        },
+        shape: {
+          type: "circle",
+          stroke: {
+            width: 1,
+            color: "#3b82f6",
+          },
+        },
+        opacity: {
+          value: 0.6,
+          random: true,
+          anim: {
+            enable: true,
+            speed: 1,
+            opacity_min: 0.3,
+            sync: false,
+          },
+        },
+        size: {
+          value: 4,
+          random: true,
+          anim: {
+            enable: true,
+            speed: 3,
+            size_min: 2,
+            sync: false,
+          },
+        },
+        line_linked: {
+          enable: true,
+          distance: 180,
+          color: "#3b82f6",
+          opacity: 0.5,
+          width: 1.5,
+        },
+        move: {
+          enable: true,
+          speed: 3,
+          direction: "none",
+          random: true,
+          straight: false,
+          out_mode: "out",
+          bounce: false,
+          attract: {
+            enable: false,
+            rotateX: 600,
+            rotateY: 1200,
+          },
+        },
+      },
+      interactivity: {
+        detect_on: "canvas",
+        events: {
+          onhover: {
+            enable: true,
+            mode: "repulse",
+          },
+          onclick: {
+            enable: true,
+            mode: "push",
+          },
+          resize: true,
+        },
+        modes: {
+          grab: {
+            distance: 400,
+            line_linked: {
+              opacity: 1,
+            },
+          },
+          bubble: {
+            distance: 400,
+            size: 50,
+            duration: 2,
+            opacity: 10,
+            speed: 3,
+          },
+          repulse: {
+            distance: 250,
+            duration: 0.4,
+          },
+          push: {
+            particles_nb: 6,
+          },
+          remove: {
+            particles_nb: 2,
+          },
+        },
+      },
+      retina_detect: true,
+    });
+  }
+}
+
+function initTiltEffects() {
+  if (typeof VanillaTilt !== "undefined") {
+    const projectCards = document.querySelectorAll(".project-card");
+    projectCards.forEach((card) => {
+      VanillaTilt.init(card, {
+        max: 15,
+        speed: 1000,
+        glare: true,
+        "max-glare": 0.2,
+        scale: 1.02,
+      });
+    });
+
+    const hackathonCards = document.querySelectorAll(".hackathon-card");
+    hackathonCards.forEach((card) => {
+      VanillaTilt.init(card, {
+        max: 10,
+        speed: 1000,
+        glare: true,
+        "max-glare": 0.15,
+        scale: 1.01,
+      });
+    });
+
+  }
+}
+
+function initTypedAnimation() {
+  if (typeof Typed !== "undefined") {
+    const descriptionElement = document.getElementById("description");
+    if (descriptionElement && DATA.description) {
+      const originalText = descriptionElement.textContent;
+      descriptionElement.textContent = "";
+      
+      new Typed(descriptionElement, {
+        strings: [originalText],
+        typeSpeed: 50,
+        backSpeed: 30,
+        backDelay: 1000,
+        showCursor: true,
+        cursorChar: "|",
+        loop: false,
+      });
+    }
+  }
+}
+
+function initMagneticButtons() {
+  const magneticElements = document.querySelectorAll(
+    ".btn-primary, .social-link, .project-link, .nav-links a"
+  );
+
+  magneticElements.forEach((element) => {
+    element.addEventListener("mousemove", function (e) {
+      const rect = element.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+
+      const moveX = x * 0.3;
+      const moveY = y * 0.3;
+
+      element.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    });
+
+    element.addEventListener("mouseleave", function () {
+      element.style.transform = "translate(0, 0)";
+    });
   });
 }
 
